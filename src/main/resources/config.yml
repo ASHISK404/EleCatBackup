@@ -1,0 +1,4 @@
+info:
+  mysqlUser: "root"
+  mysqlAddress: "1474648596"
+  mysqlUrl: "jdbc:mysql://localhost:3306"

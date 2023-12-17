@@ -1,0 +1,13 @@
+name: EleCatBackup
+version: 'snapshot-1.0'
+main: com.ashisk.elecatbackup.EleCatBackup
+api-version: '1.20'
+authors: [ASHISK]
+description: backup and log plugin for minecraft server
+website: null
+commands:
+  testPlugins:
+    description: command testPlugins
+    usage: /<command>
+    permission: elecat.testPlugins
+    permission-message: 你的权限不足
