@@ -95,7 +95,7 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                             "PluginName varchar(20) unique key  not null," +
                             "PluginVersion varchar(20)," +
                             "PluginAuthor varchar(30)," +
-                            "PluginComment varchar(20))");
+                            "PluginComment longtext)");
             statement.executeUpdate();
             statement.close();
             connection.close();
@@ -277,8 +277,9 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                         usestatement.executeUpdate("use ServerPlugins");
                         usestatement.close();
                         HTMLGenerator htmlGenerator = new HTMLGenerator();
-                        htmlGenerator.setPort(8080);
-                        htmlGenerator.setHostname("localhost");
+                        FileConfiguration configurationTemp=getConfig();
+                        htmlGenerator.setPort(configurationTemp.getInt("info.webPort"));
+                        htmlGenerator.setHostname(configurationTemp.getString("info.webHost"));
                         htmlGenerator.setConnection(connection);
                         String tableName = "plugin_info";
                         String htmlContent = htmlGenerator.generatePluginInfoTable(tableName, connection);

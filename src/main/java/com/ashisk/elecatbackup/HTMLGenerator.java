@@ -6,7 +6,10 @@ import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -61,7 +64,10 @@ public class HTMLGenerator {
 
     private String generateHTMLTable(Connection connection, String tableName) {
         StringBuilder htmlBuilder = new StringBuilder();
-        htmlBuilder.append("<html><body><table>");
+        htmlBuilder.append("<html><head>\n" +
+                "    <meta http-equiv=\"Content-Type\" content=\"=text/html;charset=GBK\">\n" +
+                "    <title>EleCat | 网页编辑器</title>\n" +
+                "</head><body><table>");
 
         try {
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + tableName);
@@ -75,6 +81,7 @@ public class HTMLGenerator {
                 String pluginComment = resultSet.getString("PluginComment");
                 htmlBuilder.append("<tr><td>").append(pluginId).append("</td><td>").append(pluginName)
                         .append("</td><td>").append(pluginVersion).append("</td><td>").append(pluginAuthor)
+
                         .append("</td><td><input type='text' value='").append(pluginComment)
                         .append("' onchange='updateComment(this.value, ").append(pluginId).append(")'></td></tr>");
             }
@@ -97,7 +104,6 @@ public class HTMLGenerator {
                 "  xhr.send('pluginId=' + pluginId + '&pluginComment=' + encodeURIComponent(comment));\n" +
                 "}\n" +
                 "</script></html>");
-
         return htmlBuilder.toString();
     }
 
@@ -110,7 +116,7 @@ public class HTMLGenerator {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            exchange.getResponseHeaders().set("Content-Type", "text/html");
+            exchange.getResponseHeaders().set("Content-Type", "text/html;charset=GBK");
             exchange.sendResponseHeaders(200, htmlContent.getBytes().length);
             OutputStream outputStream = exchange.getResponseBody();
             outputStream.write(htmlContent.getBytes());
@@ -122,13 +128,14 @@ public class HTMLGenerator {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-                String requestBody = new String(exchange.getRequestBody().readAllBytes());
-                Map<String, String> requestData = parseFormData(requestBody);
+                String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                String decodedRequestBody= URLDecoder.decode(requestBody,"GBK");
+                Map<String,String>requestData=parseFormData(decodedRequestBody);
                 String comment = requestData.get("pluginComment");
                 int pluginId = Integer.parseInt(requestData.get("pluginId"));
                 updatePluginComment(pluginId, comment);
                 String response = "Comment updated successfully";
-                exchange.getResponseHeaders().set("Content-Type", "text/plain");
+                exchange.getResponseHeaders().set("Content-Type", "text/plain;charset=GBK");
                 exchange.sendResponseHeaders(200, response.getBytes().length);
                 OutputStream outputStream = exchange.getResponseBody();
                 outputStream.write(response.getBytes());

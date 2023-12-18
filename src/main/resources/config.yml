@@ -2,3 +2,5 @@ info:
   mysqlUser: "root"
   mysqlAddress: "********"
   mysqlUrl: "jdbc:mysql://localhost:3306"
+  webPort: 8000
+  webHost: "localhost"
