@@ -128,7 +128,7 @@ public class EleCatBackup extends JavaPlugin implements Listener{
         }
     }
     private void saveAllPluginInfo(){
-        for (Plugin plugin:Bukkit.getPluginManager().getPlugins()){
+        for (Plugin plugin:Bukkit.getPluginManager().getPlugins()) {
             savePluginInfo(plugin);
         }
     }

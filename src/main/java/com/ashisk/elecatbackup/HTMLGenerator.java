@@ -62,6 +62,7 @@ public class HTMLGenerator {
         return "";
     }
 
+
     private String generateHTMLTable(Connection connection, String tableName) {
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<html><head>\n" +
