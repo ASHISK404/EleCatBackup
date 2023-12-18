@@ -21,7 +21,7 @@ public class HTMLGenerator {
         this.connection = connection;
     }
 
-    private static final int DEFAULT_PORT = 8000;
+    private static final int DEFAULT_PORT = 8080;
     private static final String DEFAULT_HOSTNAME = "localhost";
     private int port;
     private String hostname;
@@ -119,12 +119,6 @@ public class HTMLGenerator {
     }
 
     class UpdateHandler implements HttpHandler {
-        private Connection connection;
-
-        public void setConnection(Connection connection) {
-            this.connection = connection;
-        }
-
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {

@@ -279,6 +279,7 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                         HTMLGenerator htmlGenerator = new HTMLGenerator();
                         htmlGenerator.setPort(8080);
                         htmlGenerator.setHostname("localhost");
+                        htmlGenerator.setConnection(connection);
                         String tableName = "plugin_info";
                         String htmlContent = htmlGenerator.generatePluginInfoTable(tableName, connection);
                         String serverUrl = htmlGenerator.startServerAndReturnURL(htmlContent);
