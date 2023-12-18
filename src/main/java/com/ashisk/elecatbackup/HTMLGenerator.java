@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -53,6 +54,7 @@ public class HTMLGenerator {
             String serverUrl = "http://" + hostname + ":" + port + "/";
             server.createContext("/", new HTMLHandler(htmlContent));
             server.createContext("/update", new UpdateHandler());
+            server.createContext("/shutdown", new ShutdownHandler(server));
             server.setExecutor(null);
             server.start();
             return serverUrl;
@@ -65,14 +67,14 @@ public class HTMLGenerator {
     private String generateHTMLTable(Connection connection, String tableName) {
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<html><head>\n" +
-                "    <meta http-equiv=\"Content-Type\" content=\"=text/html;charset=GBK\">\n" +
-                "    <title>EleCat | ��ҳ�༭��</title>\n" +
+                "<meta charset=\"GBK\">"+
+                "    <meta http-equiv=\"Content-Type\" content=\"=text/html\">\n" +
+                "    <title>EleCat | 网页编辑器</title>\n" +
                 "</head><body><table>");
 
         try {
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + tableName);
             ResultSet resultSet = statement.executeQuery();
-
             while (resultSet.next()) {
                 String pluginName = resultSet.getString("PluginName");
                 String pluginVersion = resultSet.getString("PluginVersion");
@@ -90,8 +92,8 @@ public class HTMLGenerator {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        htmlBuilder.append("</table></body><script>\n" +
+        htmlBuilder.append("</table><button id=\"closeButton\">关闭Web Server</button>");
+        htmlBuilder.append("</body><script>\n" +
                 "function updateComment(comment, pluginId) {\n" +
                 "  var xhr = new XMLHttpRequest();\n" +
                 "  xhr.open('POST', '/update', true);\n" +
@@ -103,6 +105,20 @@ public class HTMLGenerator {
                 "  };\n" +
                 "  xhr.send('pluginId=' + pluginId + '&pluginComment=' + encodeURIComponent(comment));\n" +
                 "}\n" +
+                "const closeButton = document.getElementById('closeButton');\n" +
+                        "  closeButton.addEventListener('click', () => {\n" +
+                        "    fetch('/shutdown', { method: 'GET' })\n" +
+                        "      .then(response => {\n" +
+                        "        if (response.ok) {\n" +
+                        "          console.log('服务器已关闭');\n" +
+                        "        } else {\n" +
+                        "          console.error('关闭服务器时出现错误');\n" +
+                        "        }\n" +
+                        "      })\n" +
+                        "      .catch(error => {\n" +
+                        "        console.error('关闭服务器时出现错误:', error);\n" +
+                        "      });\n" +
+                        "  });"+
                 "</script></html>");
         return htmlBuilder.toString();
     }
@@ -123,19 +139,35 @@ public class HTMLGenerator {
             outputStream.close();
         }
     }
+    static class ShutdownHandler implements HttpHandler {
+        private final HttpServer server;
 
+        public ShutdownHandler(HttpServer server) {
+            this.server = server;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            server.stop(0);
+            String response = "WebServer已关闭";
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            OutputStream outputStream = exchange.getResponseBody();
+            outputStream.write(response.getBytes());
+            outputStream.close();
+        }
+    }
     class UpdateHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
                 String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                String decodedRequestBody= URLDecoder.decode(requestBody,"GBK");
+                String decodedRequestBody= URLDecoder.decode(requestBody,"UTF-8");
                 Map<String,String>requestData=parseFormData(decodedRequestBody);
                 String comment = requestData.get("pluginComment");
                 int pluginId = Integer.parseInt(requestData.get("pluginId"));
                 updatePluginComment(pluginId, comment);
-                String response = "Comment updated successfully";
-                exchange.getResponseHeaders().set("Content-Type", "text/plain;charset=GBK");
+                String response = "Comment成功修改";
+                exchange.getResponseHeaders().set("Content-Type", "text/plain;charset=UTF-8");
                 exchange.sendResponseHeaders(200, response.getBytes().length);
                 OutputStream outputStream = exchange.getResponseBody();
                 outputStream.write(response.getBytes());
@@ -148,7 +180,6 @@ public class HTMLGenerator {
                 outputStream.close();
             }
         }
-
         private Map<String, String> parseFormData(String formData) {
             Map<String, String> data = new HashMap<>();
             String[] pairs = formData.split("&");
