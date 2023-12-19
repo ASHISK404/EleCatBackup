@@ -62,8 +62,8 @@ public class EleCatBackup extends JavaPlugin implements Listener{
     private boolean checkDatabaseExists(){
         try{
             Connection connection=getConnection();
-            Statement statement=connection.createStatement();
-            statement.executeUpdate("use ServerPlugins");
+            PreparedStatement statement =connection.prepareStatement("use ServerPlugins");
+            statement.executeUpdate();
             statement.close();
             connection.close();
             return true;
@@ -74,8 +74,8 @@ public class EleCatBackup extends JavaPlugin implements Listener{
     private void createDatabase(){
         try{
             Connection connection=getConnection();
-            Statement statement=connection.createStatement();
-            statement.executeUpdate("create database ServerPlugins;");
+            PreparedStatement statement =connection.prepareStatement("create database ServerPlugins;");
+            statement.executeUpdate();
             statement.close();
             connection.close();
             say("[mysql]成功创建数据库");
@@ -86,10 +86,11 @@ public class EleCatBackup extends JavaPlugin implements Listener{
     private void createTable() {
         try {
             Connection connection = getConnection();
-            Statement usestatement=connection.createStatement();
-            usestatement.executeUpdate("use ServerPlugins");
-            usestatement.close();
-            PreparedStatement statement = connection.prepareStatement(
+            PreparedStatement statement = null;
+            statement=connection.prepareStatement("use ServerPlugins");
+            statement.executeUpdate();
+            statement.clearParameters();
+            statement = connection.prepareStatement(
                     "create table plugin_info(" +
                             "PluginId int(4) not null primary key auto_increment," +
                             "PluginName varchar(20) unique key  not null," +
@@ -111,10 +112,11 @@ public class EleCatBackup extends JavaPlugin implements Listener{
         String author=String.join(",",authors);
         try{
             Connection connection=getConnection();
-            Statement usestatement=connection.createStatement();
-            usestatement.executeUpdate("use ServerPlugins");
-            usestatement.close();
-            PreparedStatement statement=connection.prepareStatement(
+            PreparedStatement statement = null;
+            statement=connection.prepareStatement("use ServerPlugins");
+            statement.executeUpdate();
+            statement.clearParameters();
+            statement=connection.prepareStatement(
                     "insert ignore into plugin_info(PluginName,PluginVersion,Pluginauthor,PluginComment)values (?,?,?,NULL)"
             );
             statement.setString(1,name);
@@ -150,10 +152,10 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                 }
                 try {
                     Connection connection = getConnection();
-                    Statement statement = connection.createStatement();
-                    Statement usestatement=connection.createStatement();
-                    usestatement.executeUpdate("use ServerPlugins");
-                    usestatement.close();
+                    PreparedStatement statement = null;
+                    statement=connection.prepareStatement("use ServerPlugins");
+                    statement.executeUpdate();
+                    statement.clearParameters();
                     ResultSet resultSet = statement.executeQuery("SELECT * FROM plugin_info");
                     sender.sendMessage("插件信息：");
                     while (resultSet.next()) {
@@ -174,10 +176,11 @@ public class EleCatBackup extends JavaPlugin implements Listener{
             }else if (args[0].equalsIgnoreCase("comment")){
                 try{
                     Connection connection=getConnection();
-                    Statement usestatement=connection.createStatement();
-                    usestatement.executeUpdate("use ServerPlugins");
-                    usestatement.close();
-                    PreparedStatement statement=connection.prepareStatement(
+                    PreparedStatement statement = null;
+                    statement=connection.prepareStatement("use ServerPlugins");
+                    statement.executeUpdate();
+                    statement.clearParameters();
+                    statement=connection.prepareStatement(
                             "update plugin_info set PluginComment=? where PluginID=?"
                     );
                     statement.setString(1,args[2]);
@@ -194,10 +197,11 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                 if (args[1].equalsIgnoreCase("delete")){
                     try{
                         Connection connection=getConnection();
-                        Statement usestatement=connection.createStatement();
-                        usestatement.executeUpdate("use ServerPlugins");
-                        usestatement.close();
-                        PreparedStatement statement=connection.prepareStatement(
+                        PreparedStatement statement = null;
+                        statement=connection.prepareStatement("use ServerPlugins");
+                        statement.executeUpdate();
+                        statement.clearParameters();
+                        statement=connection.prepareStatement(
                                 "delete from plugin_info where PluginID=?"
                         );
                         statement.setString(1,args[2]);
@@ -212,9 +216,9 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                 }else if (args[1].equalsIgnoreCase("reload")){
                     try{
                         Connection connection=getConnection();
-                        Statement usestatement=connection.createStatement();
-                        usestatement.executeUpdate("drop database ServerPlugins");
-                        usestatement.close();
+                        PreparedStatement statement =connection.prepareStatement("drop database ServerPlugins");
+                        statement.executeUpdate();
+                        statement.close();
                         if(!checkDatabaseExists()){
                             createDatabase();
                             createTable();
@@ -228,10 +232,10 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                 }else if (args[1].equalsIgnoreCase("UploadToXml")){
                     try{
                     Connection connection = getConnection();
-                    Statement statement = connection.createStatement();
-                    Statement usestatement=connection.createStatement();
-                    usestatement.executeUpdate("use ServerPlugins");
-                    usestatement.close();
+                        PreparedStatement statement = null;
+                        statement=connection.prepareStatement("use ServerPlugins");
+                        statement.executeUpdate();
+                        statement.clearParameters();
                     ResultSet resultSet = statement.executeQuery("SELECT * FROM plugin_info");
                     String fileNameXML=args[2];
                     XMLOutputFactory XMLoutputPlugin=XMLOutputFactory.newInstance();
@@ -273,9 +277,10 @@ public class EleCatBackup extends JavaPlugin implements Listener{
                 } else if (args[1].equalsIgnoreCase("openWeb")) {
                     try{
                         Connection connection=getConnection();
-                        Statement usestatement=connection.createStatement();
-                        usestatement.executeUpdate("use ServerPlugins");
-                        usestatement.close();
+                        PreparedStatement statement = null;
+                        statement=connection.prepareStatement("use ServerPlugins");
+                        statement.executeUpdate();
+                        statement.close();
                         HTMLGenerator htmlGenerator = new HTMLGenerator();
                         FileConfiguration configurationTemp=getConfig();
                         htmlGenerator.setPort(configurationTemp.getInt("info.webPort"));
